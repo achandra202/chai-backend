@@ -15,6 +15,14 @@ app.use(express.urlencoded({ extended: true })); // To parse URL-encoded bodies
 app.use(express.static("public")); // To serve static files from the "public" directory
 
 
+// Import routes here
+import userRoutes from "./routes/user.routes.js";
+
+// User routes declared here
+app.use("/api/v1/users", userRoutes);
+
+// http://localhost:8000/api/v1/users/register
 
 
-export default app;
+// Global error handling middleware
+export { app };
