@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res, next) => {
     // Registration logic here
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "Incoming data..." });
 
     //get user details from frontend
     //validate user details
@@ -20,9 +20,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
     //send response
 
     const { fullName,username, email, password } = req.body
-    console.log("email: ", email);    
+    //console.log("email: ", email);    
+    console.log("body: ", req.body);    
 
-    if([!fullName, !username, !email, !password].some((field)=>field?.trim()=== ""))
+    if([fullName, username, email, password].some((field)=>field?.trim()=== ""))
     {
         throw new ApiErrors("All fields are required", 400);
     }
@@ -43,6 +44,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
     {
         throw new ApiErrors("Avatar is required", 400);
     }
+
+    console.log("avtarLocalPath: ", avtarLocalPath);  
+    console.log("coverImageLocalPath: ", coverImageLocalPath);  
 
     const avtar= await uploadOnCloudinary(avtarLocalPath);
     if(!avtar)
