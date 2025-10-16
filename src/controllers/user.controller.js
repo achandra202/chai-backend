@@ -1,4 +1,4 @@
-import e from "express";
+
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiErrors from "../utils/ApiErrors.js";
 import {User} from "../models/user.model.js";
@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res, next) => {
     // Registration logic here
-    res.status(201).json({ message: "Incoming data..." });
+    //res.status(201).json({ message: "Incoming data..." });
 
     //get user details from frontend
     //validate user details
@@ -19,16 +19,16 @@ const registerUser = asyncHandler(async (req, res, next) => {
     //check if user is created successfully
     //send response
 
-    const { fullName,username, email, password } = req.body
+    const { fullName,userName, email, password } = req.body
     //console.log("email: ", email);    
     console.log("body: ", req.body);    
 
-    if([fullName, username, email, password].some((field)=>field?.trim()=== ""))
+    if([fullName, userName, email, password].some((field)=>field?.trim()=== ""))
     {
         throw new ApiErrors("All fields are required", 400);
     }
 
-    const userExists = await(User.findOne({$or: [{email}, {username}] }))
+    const userExists = await(User.findOne({$or: [{email}, {userName}] }))
     if(userExists)
     {
         throw new ApiErrors("User already exists", 409);
@@ -36,39 +36,39 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
     const avtarLocalPath = req.files?.avatar?.[0]?.path;
     const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
-    if(avtarLocalPath)
-    {
-        throw new ApiErrors("Avatar is required", 400);
-    }
-     if(avtarLocalPath)
-    {
-        throw new ApiErrors("Avatar is required", 400);
-    }
 
     console.log("avtarLocalPath: ", avtarLocalPath);  
-    console.log("coverImageLocalPath: ", coverImageLocalPath);  
+    console.log("coverImageLocalPath: ", coverImageLocalPath); 
+    if(!avtarLocalPath)
+    {
+        throw new ApiErrors("Avatar is required", 400);
+    }
+     if(!coverImageLocalPath)
+    {
+        throw new ApiErrors("Cover Iamge is required", 400);
+    }
 
-    const avtar= await uploadOnCloudinary(avtarLocalPath);
-    if(!avtar)
+ 
+
+    const avatar = await uploadOnCloudinary(avtarLocalPath);
+    const coverImage= await uploadOnCloudinary(coverImageLocalPath);
+        
+    if(!avatar)
     {
         throw new ApiErrors("Error in uploading avatar", 500);
     }
-    const coverImage= await uploadOnCloudinary(coverImageLocalPath);
-    if(coverImageLocalPath && !coverImage)
-    {
-        throw new ApiErrors("Error in uploading cover image", 500);
-    } 
+    
 
     const user = await User.create({
         fullName,
-        username: username.toLowerCase(),
-        avtar: avtar.secure_url,
-        coverImage: coverImage?.secure_url||"",
-        email,
-        password
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email, 
+        password,
+        userName: userName.toLowerCase()
     }); 
-
-    createdUser= await User.findByIdAndUpdate(user._id).select("-password -refreshToken");
+    console.log("user created boss: ", user); 
+    const createdUser = await User.findByIdAndUpdate(user._id).select("-password -refreshToken");
 
     if(!createdUser)
     {

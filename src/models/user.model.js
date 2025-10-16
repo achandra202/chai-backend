@@ -4,7 +4,7 @@ import bcrypt from "bcrypt"
 
 const userSchema = new Schema(
     {
-        username: {
+        userName: {
             type: String,
             required: true,
             unique: true,
@@ -97,4 +97,4 @@ userSchema.methods.generateAccessToken = function () {
     )
 }
 
-export const User= mongoose.model("User", userSchema)
+export const User  = mongoose.model("User", userSchema)
