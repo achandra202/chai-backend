@@ -222,9 +222,117 @@ try {
     }
     
 })
-        
+
+const changePassword = asyncHandler(async (req, res) => {
+    // Change password logic here
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+        throw new ApiErrors("Old password and new password are required", 400);
+    }
+    const user = await User.findById(req.user._id);
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordValid) {
+        throw new ApiErrors("Old password is incorrect", 401);
+    }
+    user.password = newPassword;
+    await user.save({validateBeforeSave: false});
+    return res.status(200).json(new ApiResponse(200, "Password changed successfully")); 
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    // Reset password logic here
+    return  res.status(200).json({ message: "Reset password endpoint" });
+
+});
+const forgotPassword = asyncHandler(async (req, res) => {
+    // Forgot password logic here
+    return res
+        .status(200)
+        .json(200, req.user,{ message: "Forgot password endpoint" });
+});
+const getCurrentUser = asyncHandler(async (req, res) => {
+    // Get user profile logic here
+     return res
+        .status(200)
+        .json(200, req.user,{ message: "Forgot password endpoint" });
+}); 
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+    // Update user profile logic here
+
+    const { fullName, bio, location, website } = req.body;
+    if (!fullName && !bio && !location && !website) {
+        throw new ApiErrors("At least one field is required to update", 400);
+    }
+    const user = User.findByIdAndUpdate(req.user._id, {
+        $set: {
+            ...(fullName && { fullName }),
+            ...(bio && { bio }),
+            ...(location && { location }),
+            ...(website && { website })
+        }
+    }, { new: true }).select("-password -refreshToken");
+
+    return res
+        .status(200)
+        .json({ message: "Update user profile endpoint" });
+});
+
+const deleteUserAccount = asyncHandler(async (req, res) => {
+    // Delete user account logic here
+    return res
+        .status(200)
+        .json({ message: "Delete user account endpoint" });
+});
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    // Update user avatar logic here
+    const avtarLocalPath = req.file?.path
+    if (!avtarLocalPath) {
+        throw new ApiErrors("Avtar image is required", 400);
+    } 
+
+    const avatar = await uploadOnCloudinary(avtarLocalPath);
+    
+    if (!avatar.url) {
+        throw new ApiErrors("Error in uploading avatar", 500);
+    }
+
+    const user= await User.findByIdAndUpdate(req.user._id, {
+        $set: {
+            avatar: avatar.url
+        }
+    }, { new: true }).select("-password -refreshToken");
+
+
+    return res
+        .status(200)
+        .json({ message: "Update user avatar endpoint" });
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    // Update user cover image logic here
+    const coverImageLocalPath = req.file?.path
+    if (!coverImageLocalPath) {
+        throw new ApiErrors("Cover image is required", 400);
+    }   
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    if (!coverImage.url) { 
+        throw new ApiErrors("Error in uploading cover image", 500);
+    }
+    const user= await User.findByIdAndUpdate(req.user._id, {
+        $set: {
+            avatar: coverImage.url
+        }
+    }, { new: true }).select("-password -refreshToken");
+
+    
+    return res
+        .status(200)
+        .json({ message: "Update user cover image endpoint" });
+});
         
 
 
-export { registerUser, loginUser,logoutUser,refreshAccessToken };// A utility function to handle async route handlers and middleware
+
+export { registerUser, loginUser,logoutUser,refreshAccessToken,changePassword,getCurrentUser,updateUserAvatar,updateUserCoverImage};// A utility function to handle async route handlers and middleware
 // It catches errors and passes them to the next middleware (error handler)
