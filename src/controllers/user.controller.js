@@ -4,6 +4,7 @@ import ApiErrors from "../utils/ApiErrors.js";
 import {User} from "../models/user.model.js";
 import{uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken"
 
 const registerUser = asyncHandler(async (req, res, next) => {
     // Registration logic here
@@ -173,7 +174,57 @@ const logoutUser = asyncHandler(async (req, res, next) => {
     return res.status(200).json(new ApiResponse(200, "Logout successful"));
 })
 
+const refreshAccessToken = asyncHandler(async (req, res, next) => {
+    // Refresh access token logic here
+    // Get refresh token from cookies
+    // Validate refresh token
+    // Generate new access token
+    // Send new access token in cookie and response 
+    const { incomingRefreshToken } = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) {
+        throw new ApiErrors("Refresh token not found", 401);
+    }
+
+try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+        const user = await User.findById(decodedToken?._id);
+        
+        if (!user) {
+            throw new ApiErrors("Invalid refresh token", 401);
+        }
+    
+        if (incomingRefreshToken !== user.refreshToken) {
+            throw new ApiErrors("Refresh token not matching", 401);
+    
+        }
+     
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        }
+    
+        const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+    
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    { accessToken, refreshToken: newRefreshToken },
+                    "Access token refreshed successfully"
+                ))
+    } catch (error)
+    {
+        throw new ApiErrors(error?.message||"Invalid refresh token", 401); 
+    }
+    
+})
+        
+        
 
 
-export { registerUser, loginUser,logoutUser };// A utility function to handle async route handlers and middleware
+export { registerUser, loginUser,logoutUser,refreshAccessToken };// A utility function to handle async route handlers and middleware
 // It catches errors and passes them to the next middleware (error handler)
