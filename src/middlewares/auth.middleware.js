@@ -8,7 +8,9 @@ export const verifyJWT = asyncHandler(async (req, _, next) =>{
         
     try
     {
-        
+        console.log("Verifying JWT middleware called");
+        console.log("Cookies: ", req.cookies);
+
        const token = req.cookies?.accessToken || req.header("Authorization")?.replcace("Bearer ", "")
     
         if (!token)
@@ -17,13 +19,17 @@ export const verifyJWT = asyncHandler(async (req, _, next) =>{
         }
     
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        console.log("decodedToken: ", decodedToken);
         
-        const user= await User.findById(decodedToken.id).select("-password -refreshToken")
+        const user= await User.findById(decodedToken._id).select("-password -refreshToken")
         {
             if (!user)
             {
                 throw new ApiErrors("User not found", 404);
             }
+
+            console.log("user found: ", user);
+
             req.user = user;
             next();
     
@@ -31,6 +37,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) =>{
     }
     catch (error)
     {
-        throw new ApiErrors("Invalid or expired token", 401);
+        //throw new ApiErrors("Invalid or expired token", 401);
+        throw new ApiErrors(error, 401);
     }    
 })

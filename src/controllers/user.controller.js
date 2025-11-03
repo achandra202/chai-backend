@@ -35,6 +35,8 @@ const registerUser = asyncHandler(async (req, res, next) => {
         throw new ApiErrors("User already exists", 409);
     }
 
+    //console.log("req.files:---> ", req.files);    
+
     const avtarLocalPath = req.files?.avatar?.[0]?.path;
     const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
@@ -48,7 +50,6 @@ const registerUser = asyncHandler(async (req, res, next) => {
     {
         throw new ApiErrors("Cover Iamge is required", 400);
     }
-
  
 
     const avatar = await uploadOnCloudinary(avtarLocalPath);
@@ -98,6 +99,10 @@ const generateAccessAndRefreshToken = async (userId) =>
 }
 
 const loginUser = asyncHandler(async (req, res, next) => {
+
+        
+    console.log("body: ", req.body);   
+    
     // Login logic here
     //take username and password from req.body
     //validate username and password
@@ -137,7 +142,6 @@ const loginUser = asyncHandler(async (req, res, next) => {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
     
-
     //send cookie with token
     return res
         .status(200)
@@ -155,7 +159,8 @@ const loginUser = asyncHandler(async (req, res, next) => {
 const logoutUser = asyncHandler(async (req, res, next) => {
     // Logout logic here
     // Clear the cookies  
-    
+    console.log("Logout user id: ", req.user._id);
+
     await User.findByIdAndUpdate(req.user._id,
         {
             $set: { refreshToken: undefined }

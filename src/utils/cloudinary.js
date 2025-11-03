@@ -20,7 +20,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     try {
 
 
-        //console.log("cloudinary receved localFilePath: ", localFilePath);        
+        console.log("cloudinary receved localFilePath: ", localFilePath);        
 
         if (!localFilePath) return null
         //upload the file on cloudinary
