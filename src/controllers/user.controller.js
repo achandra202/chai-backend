@@ -337,7 +337,5 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 });
         
 
-
-
 export { registerUser, loginUser,logoutUser,refreshAccessToken,changePassword,getCurrentUser,updateUserAvatar,updateUserCoverImage};// A utility function to handle async route handlers and middleware
 // It catches errors and passes them to the next middleware (error handler)
